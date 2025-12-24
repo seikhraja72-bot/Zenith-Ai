@@ -1,12 +1,5 @@
+streamlit
 groq
 google-generativeai==0.8.3
 Pillow
-streamlit
-groq
-gTTS
-groq
-google-generativeai
-Pillow
-groq
-google-generativeai>=0.8.3
-Pillow
+
