@@ -5,11 +5,11 @@ st.set_page_config(page_title="Zenith AI", page_icon="💠")
 st.title("💠 Zenith AI")
 st.caption("Created by Shaikh Raja")
 
-# Hum key ko "Secrets" se uthayenge
-try:
+# Ye line Streamlit ke "Secrets" se key uthayegi
+if "GROQ_API_KEY" in st.secrets:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except:
-    st.error("Please add the API Key in Streamlit Secrets!")
+else:
+    st.error("Opps! Streamlit Secrets mein API Key nahi mili.")
     st.stop()
 
 if "messages" not in st.session_state:
@@ -19,7 +19,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Puchiye..."):
+if prompt := st.chat_input("Zenith se puchiye..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -32,4 +32,5 @@ if prompt := st.chat_input("Puchiye..."):
         msg = response.choices[0].message.content
         st.markdown(msg)
         st.session_state.messages.append({"role": "assistant", "content": msg})
+
 
