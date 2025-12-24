@@ -27,7 +27,7 @@ if prompt := st.chat_input("Zenith se puchiye..."):
     with st.chat_message("assistant"):
         response = client.chat.completions.create(
             messages=[{"role": "system", "content": "You are Zenith AI, built by Shaikh Raja."}, *st.session_state.messages],
-            model="llama3-8b-8192",
+            model"llama-3.3-70b-versatile,
         )
         msg = response.choices[0].message.content
         st.markdown(msg)
