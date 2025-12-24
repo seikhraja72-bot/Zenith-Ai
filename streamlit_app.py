@@ -1,81 +1,68 @@
 import streamlit as st
-import google.generativeai as genai
 from groq import Groq
 import PIL.Image
-import urllib.parse
+import base64
+import io
 
-# Page configuration
-st.set_page_config(page_title="Zenith AI", page_icon="💠", layout="wide")
+# Page Config
+st.set_page_config(page_title="Zenith AI Pro", page_icon="💠", layout="wide")
 
-# Sidebar setup
-with st.sidebar:
-    st.title("💠 Zenith AI")
-    st.info("👤 **Shaikh Raja**\n\nLead Developer")
-    st.success("✅ Llama + Gemini Active")
-    uploaded_file = st.file_uploader("Photo upload kijiye...", type=['png', 'jpg', 'jpeg'])
-    if st.button("🗑️ Clear Chat"):
-        st.session_state.messages = []
-        st.rerun()
-
-# API Connections with Fixes
+# API Setup
 try:
-    # transport='rest' dalne se 404 error solve ho jayegi
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport='rest')
-    vision_model = genai.GenerativeModel('models/gemini-1.5-flash')
-    groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except Exception as e:
-    st.error(f"API Key Error: {e}")
+    st.error("Groq Key missing in Secrets!")
 
-st.title("💠 Zenith AI")
-st.caption("The Peak of Intelligence | Created by Shaikh Raja")
+# Sidebar
+with st.sidebar:
+    st.title("💠 Zenith AI Pro")
+    st.info("Creator: Shaikh Raja")
+    uploaded_file = st.file_uploader("Photo upload karein...", type=['png', 'jpg', 'jpeg'])
+
+# Image processing function
+def encode_image(image_file):
+    return base64.b64encode(image_file.read()).decode('utf-8')
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User Input Logic
-if prompt := st.chat_input("Zenith se kuch bhi puchiye..."):
+if prompt := st.chat_input("Baat karein ya photo ke baare mein puchein..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # 1. VISION FEATURE (GEMINI)
-        if uploaded_file:
-            try:
-                img = PIL.Image.open(uploaded_file)
-                st.image(img, caption="Aapki Photo", width=300)
-                response = vision_model.generate_content([prompt, img])
-                msg = response.text
-                st.markdown(msg)
-            except Exception as e:
-                st.error(f"Vision Connection Error: {e}")
-                msg = "Photo dekhne mein dikkat ho rahi hai, dobara koshish karein."
-        
-        # 2. IMAGE GENERATION (POLLINATIONS)
-        elif any(word in prompt.lower() for word in ["bnao", "image", "photo", "generate"]):
-            encoded = urllib.parse.quote(prompt)
-            url = f"https://pollinations.ai/p/{encoded}?width=1024&height=1024&nologo=true"
-            st.image(url, caption=f"Zenith Creation: {prompt}")
-            msg = f"Maine '{prompt}' ki image bana di hai!"
-            st.markdown(msg)
-
-        # 3. CHAT LOGIC (GROQ/LLAMA)
-        else:
-            try:
-                chat_res = groq_client.chat.completions.create(
-                    messages=[{"role": "system", "content": "You are Zenith AI, created by Shaikh Raja."}] + st.session_state.messages,
-                    model="llama-3.3-70b-versatile",
+        try:
+            if uploaded_file:
+                # VISION MODEL (Llama-3.2-11b-Vision)
+                base64_image = encode_image(uploaded_file)
+                response = client.chat.completions.create(
+                    model="llama-3.2-11b-vision-preview",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                            ]
+                        }
+                    ]
                 )
-                msg = chat_res.choices[0].message.content
-                st.markdown(msg)
-            except Exception as e:
-                st.error("Groq key authentication failed!")
-                msg = "Chat system abhi kaam nahi kar raha."
-        
-        st.session_state.messages.append({"role": "assistant", "content": msg})
+                msg = response.choices[0].message.content
+            else:
+                # NORMAL CHAT MODEL
+                response = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[{"role": "system", "content": "You are Zenith AI Pro, created by Shaikh Raja."}] + st.session_state.messages
+                )
+                msg = response.choices[0].message.content
+            
+            st.markdown(msg)
+            st.session_state.messages.append({"role": "assistant", "content": msg})
+        except Exception as e:
+            st.error(f"Error: {e}")
 
