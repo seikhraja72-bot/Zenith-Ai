@@ -7,52 +7,50 @@ import urllib.parse
 # 1. Page Config
 st.set_page_config(page_title="Zenith AI", page_icon="💠", layout="centered")
 
-# 2. Advanced CSS for Gemini Look
+# 2. Advanced CSS for Gemini Interface (Sidebar Hidden)
 st.markdown("""
     <style>
-        /* Sidebar aur फालतू cheezein chhupane ke liye */
+        /* Hide default Streamlit elements */
         [data-testid="stSidebar"], .stDeployButton, footer, #MainMenu {display: none;}
         
         /* Main Container setup */
-        .block-container {padding-top: 2rem; max-width: 800px;}
+        .block-container {padding-top: 1rem; max-width: 750px;}
 
-        /* Plus Icon aur Input Bar ko ek sath dikhane ke liye custom style */
-        .stChatInputContainer {
-            padding-bottom: 60px;
-        }
-        
-        /* Floating Creator Name at the very bottom */
-        .creator-footer {
+        /* Bottom Creator Branding (Fixed at bottom) */
+        .footer {
             position: fixed;
             bottom: 5px;
             left: 0;
             width: 100%;
             text-align: center;
-            color: #888;
+            color: #70757a;
             font-size: 11px;
-            font-family: sans-serif;
             background-color: white;
             padding: 5px 0;
-            z-index: 999;
+            z-index: 100;
+            border-top: 1px solid #f1f3f4;
         }
 
-        /* Input field ke pas plus icon ka box */
-        div[data-testid="stFileUploader"] {
-            width: 50px;
-            margin-bottom: -45px;
-            margin-left: -60px;
-            z-index: 10;
+        /* Styling for Upload Icon area */
+        .upload-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# API Connections (404 Error fix ke sath)
+# API Connections
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport='rest')
     vision_model = genai.GenerativeModel('models/gemini-1.5-flash')
     groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("API Error!")
+    st.error("API Key missing!")
+
+# Branding at the Bottom
+st.markdown('<div class="footer">Zenith AI • Crafted by Shaikh Raja</div>', unsafe_allow_html=True)
 
 # Chat History
 if "messages" not in st.session_state:
@@ -62,14 +60,15 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 3. Gemini Style Plus Button & Chat
-# Button ko chat input ke bilkul bagal mein lane ki koshish
-col1, col2 = st.columns([0.1, 0.9])
-with col1:
-    uploaded_file = st.file_uploader("➕", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
-
-with col2:
-    prompt = st.chat_input("Ask Zenith anything...")
+# 3. Plus Icon (File Uploader) and Input Bar
+# Dono ko ek sath dikhane ke liye layout
+with st.container():
+    col1, col2 = st.columns([0.15, 0.85])
+    with col1:
+        # Isse Plus icon jaisa effect aayega
+        uploaded_file = st.file_uploader("➕", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
+    with col2:
+        prompt = st.chat_input("Zenith se puchiye...")
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -77,7 +76,7 @@ if prompt:
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # Vision Logic
+        # Image Analysis Logic
         if uploaded_file:
             try:
                 img = PIL.Image.open(uploaded_file)
@@ -85,17 +84,17 @@ if prompt:
                 msg = response.text
                 st.markdown(msg)
             except:
-                msg = "Photo read nahi ho pa rahi."
+                msg = "Photo processing error!"
                 st.markdown(msg)
         
         # Image Generation Logic
-        elif any(word in prompt.lower() for word in ["bnao", "image", "generate"]):
+        elif any(word in prompt.lower() for word in ["bnao", "image", "photo", "generate"]):
             encoded = urllib.parse.quote(prompt)
             url = f"https://pollinations.ai/p/{encoded}?width=1024&height=1024&nologo=true&model=flux"
             st.image(url)
-            msg = "Maine aapki image taiyar kar di hai."
+            msg = "Maine aapki image bana di hai."
         
-        # Chat Logic
+        # General Chat Logic
         else:
             try:
                 chat_res = groq_client.chat.completions.create(
@@ -105,11 +104,8 @@ if prompt:
                 msg = chat_res.choices[0].message.content
                 st.markdown(msg)
             except:
-                msg = "System busy hai."
+                msg = "System is busy."
                 st.markdown(msg)
         
         st.session_state.messages.append({"role": "assistant", "content": msg})
-
-# 4. Creator Branding at the Bottom
-st.markdown('<div class="creator-footer">Zenith AI • Crafted by Shaikh Raja</div>', unsafe_allow_html=True)
 
