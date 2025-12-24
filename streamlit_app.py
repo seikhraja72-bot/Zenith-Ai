@@ -9,7 +9,7 @@ st.title("💠 Zenith AI")
 st.write("Created by Shaikh Raja")
 
 # API Connection
-client = Groq(api_key="Gsk_yVPzT6aZ1PwYu62nMRqbWGdyb3FYkSiOurOKCcJspnlq0r2ZQwWE")
+client = Groq(api_key="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")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
