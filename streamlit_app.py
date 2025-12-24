@@ -38,7 +38,7 @@ if prompt := st.chat_input("Baat karein ya photo ke baare mein puchein..."):
     with st.chat_message("assistant"):
         try:
             if uploaded_file:
-                # VISION MODEL ="llama-3.2-90b-vision-preview",
+                # VISION model="llama-3.2-90b-vision-preview,
 
                 base64_image = encode_image(uploaded_file)
                 response = client.chat.completions.create(
