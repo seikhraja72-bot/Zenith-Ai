@@ -22,10 +22,10 @@ with st.sidebar:
 # API Connections
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    vision_model = genai.GenerativeModel('gemini-1.5-flash')
+    vision_model = genai.GenerativeModel('models/gemini-1.5-flash')
     groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except Exception as e:
-    st.error("API Keys missing in Secrets!")
+    st.error(f"Galti hui hai: {e}")
 
 st.title("💠 Zenith AI")
 st.caption("The Peak of Intelligence | Created by Shaikh Raja")
