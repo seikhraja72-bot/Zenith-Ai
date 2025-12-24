@@ -3,20 +3,20 @@ import google.generativeai as genai
 from groq import Groq
 import PIL.Image
 import urllib.parse
-import io
 
-# 1. Page Config (Mere jaisa blue/white theme aur icon)
+# 1. Page Config (Mere jaisa blue icon aur title)
 st.set_page_config(page_title="Zenith AI", page_icon="💠", layout="centered")
 
-# CSS for a clean UI (Sidebar chupane ke liye)
+# CSS for a clean UI (TypeError fix karne ke liye)
 st.markdown("""
     <style>
         [data-testid="stSidebar"] {display: none;}
         .stDeployButton {display:none;}
         footer {visibility: hidden;}
         #MainMenu {visibility: hidden;}
+        .block-container {padding-top: 2rem;}
     </style>
-""", unsafe_allow_stdio=True)
+""", unsafe_allow_html=True)
 
 # API Connections
 try:
@@ -26,8 +26,8 @@ try:
 except Exception as e:
     st.error("Connection Error!")
 
-# Logo aur Title (Aapka custom naam yahan aayega)
-st.markdown("<h2 style='text-align: center;'>💠 Zenith AI</h2>", unsafe_allow_stdio=True)
+# Logo aur Title
+st.markdown("<h2 style='text-align: center;'>💠 Zenith AI</h2>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -37,7 +37,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Photo Upload (Chat input ke upar)
+# Photo Upload (Ek dum clean look)
 uploaded_file = st.file_uploader("", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
 
 # User Input
@@ -47,7 +47,7 @@ if prompt := st.chat_input("Mujhse kuch bhi puchiye..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # 1. VISION (GEMINI)
+        # 1. VISION (GEMINI) - 'Nano Banana' hat gaya hai
         if uploaded_file:
             try:
                 img = PIL.Image.open(uploaded_file)
@@ -55,13 +55,14 @@ if prompt := st.chat_input("Mujhse kuch bhi puchiye..."):
                 msg = response.text
                 st.markdown(msg)
             except:
-                msg = "Photo processing mein dikkat hui."
+                msg = "Maaf kijiye, main ye photo abhi nahi dekh pa raha."
                 st.markdown(msg)
         
-        # 2. IMAGE GENERATION (Ab 'Nano Banana' likha nahi aayega)
+        # 2. IMAGE GENERATION (Nano Banana power, par naam nahi dikhega)
         elif any(word in prompt.lower() for word in ["bnao", "image", "photo", "generate"]):
             encoded = urllib.parse.quote(prompt)
-            url = f"https://pollinations.ai/p/{encoded}?width=1024&height=1024&nologo=true"
+            # Yahan hum Flux model use kar rahe hain jo best quality deta hai
+            url = f"https://pollinations.ai/p/{encoded}?width=1024&height=1024&nologo=true&model=flux"
             st.image(url)
             msg = "Maine aapki image taiyar kar di hai."
         
@@ -69,13 +70,13 @@ if prompt := st.chat_input("Mujhse kuch bhi puchiye..."):
         else:
             try:
                 chat_res = groq_client.chat.completions.create(
-                    messages=[{"role": "system", "content": "You are Zenith AI, a smart assistant."}] + st.session_state.messages,
+                    messages=[{"role": "system", "content": "You are Zenith AI, a smart assistant like Gemini."}] + st.session_state.messages,
                     model="llama-3.3-70b-versatile",
                 )
                 msg = chat_res.choices[0].message.content
                 st.markdown(msg)
             except:
-                msg = "System busy hai."
+                msg = "System busy hai, thodi der baad koshish karein."
                 st.markdown(msg)
         
         st.session_state.messages.append({"role": "assistant", "content": msg})
