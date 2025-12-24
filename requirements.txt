@@ -1,3 +1,6 @@
 streamlit
 groq
 gTTS
+groq
+google-generativeai
+Pillow
