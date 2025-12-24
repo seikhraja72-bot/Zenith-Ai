@@ -25,12 +25,14 @@ if prompt := st.chat_input("Zenith se puchiye..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        response = client.chat.completions.create(
-            messages=[{"role": "system", "content": "You are Zenith AI, built by Shaikh Raja."}, *st.session_state.messages],
-            model"llama-3.3-70b-versatile,
-        )
-        msg = response.choices[0].message.content
-        st.markdown(msg)
-        st.session_state.messages.append({"role": "assistant", "content": msg})
-
+        try:
+            response = client.chat.completions.create(
+                messages=[{"role": "system", "content": "You are Zenith AI, built by Shaikh Raja."}, *st.session_state.messages],
+                model="llama-3.3-70b-versatile",
+            )
+            msg = response.choices[0].message.content
+            st.markdown(msg)
+            st.session_state.messages.append({"role": "assistant", "content": msg})
+        except Exception as e:
+            st.error(f"Dikkat hui: {e}")
 
