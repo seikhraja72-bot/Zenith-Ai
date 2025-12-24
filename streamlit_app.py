@@ -16,7 +16,7 @@ with st.sidebar:
 
 # Setup APIs
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-vision_model = genai.GenerativeModel('gemini-1.5-flash')
+vision_model = genai.GenerativeModel('gemini-1.5-flash-latest') 
 groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 st.title("💠 Zenith AI")
