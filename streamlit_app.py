@@ -4,17 +4,25 @@ from groq import Groq
 import PIL.Image
 import urllib.parse
 
-# 1. Page Config (Mere jaisa blue icon aur title)
+# 1. Page Configuration
 st.set_page_config(page_title="Zenith AI", page_icon="💠", layout="centered")
 
-# CSS for a clean UI (TypeError fix karne ke liye)
+# 2. Gemini-Style Ultra Clean UI (Sidebar Hidden)
 st.markdown("""
     <style>
         [data-testid="stSidebar"] {display: none;}
         .stDeployButton {display:none;}
         footer {visibility: hidden;}
         #MainMenu {visibility: hidden;}
-        .block-container {padding-top: 2rem;}
+        .block-container {padding-top: 1rem; max-width: 700px;}
+        .stChatInputContainer {padding-bottom: 50px;}
+        .developer-footer {
+            text-align: center; 
+            color: #888; 
+            font-size: 14px; 
+            margin-top: 20px;
+            font-weight: bold;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -26,28 +34,31 @@ try:
 except Exception as e:
     st.error("Connection Error!")
 
-# Logo aur Title
-st.markdown("<h2 style='text-align: center;'>💠 Zenith AI</h2>", unsafe_allow_html=True)
+# Home Screen Branding
+st.markdown("<h1 style='text-align: center; color: #4285F4;'>💠 Zenith AI</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #5f6368;'>Hello! I'm your AI assistant.</p>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Chat History Display
+# Chat History
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Photo Upload (Ek dum clean look)
-uploaded_file = st.file_uploader("", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
+# 3. Plus Icon Style - Photo Upload
+# Isse plus icon jaisa effect milega
+st.markdown("---")
+uploaded_file = st.file_uploader("➕ Upload Photo to Discuss", type=['png', 'jpg', 'jpeg'])
 
-# User Input
-if prompt := st.chat_input("Mujhse kuch bhi puchiye..."):
+# Main Chat Input
+if prompt := st.chat_input("Ask Zenith anything..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # 1. VISION (GEMINI) - 'Nano Banana' hat gaya hai
+        # Photo Processing (Gemini)
         if uploaded_file:
             try:
                 img = PIL.Image.open(uploaded_file)
@@ -55,29 +66,32 @@ if prompt := st.chat_input("Mujhse kuch bhi puchiye..."):
                 msg = response.text
                 st.markdown(msg)
             except:
-                msg = "Maaf kijiye, main ye photo abhi nahi dekh pa raha."
+                msg = "Photo dekhne mein dikkat hui."
                 st.markdown(msg)
         
-        # 2. IMAGE GENERATION (Nano Banana power, par naam nahi dikhega)
-        elif any(word in prompt.lower() for word in ["bnao", "image", "photo", "generate"]):
+        # Image Generation (Nano Banana Power)
+        elif any(word in prompt.lower() for word in ["bnao", "image", "generate", "photo"]):
             encoded = urllib.parse.quote(prompt)
-            # Yahan hum Flux model use kar rahe hain jo best quality deta hai
             url = f"https://pollinations.ai/p/{encoded}?width=1024&height=1024&nologo=true&model=flux"
             st.image(url)
-            msg = "Maine aapki image taiyar kar di hai."
+            msg = "Maine aapki image bana di hai."
         
-        # 3. CHAT (LLAMA 3.3)
+        # Fast Chat (Llama)
         else:
             try:
                 chat_res = groq_client.chat.completions.create(
-                    messages=[{"role": "system", "content": "You are Zenith AI, a smart assistant like Gemini."}] + st.session_state.messages,
+                    messages=[{"role": "system", "content": "You are Zenith AI, a professional assistant created by Shaikh Raja."}] + st.session_state.messages,
                     model="llama-3.3-70b-versatile",
                 )
                 msg = chat_res.choices[0].message.content
                 st.markdown(msg)
             except:
-                msg = "System busy hai, thodi der baad koshish karein."
+                msg = "System busy hai."
                 st.markdown(msg)
         
         st.session_state.messages.append({"role": "assistant", "content": msg})
+
+# 4. Developer Credit (Home Screen par dikhega)
+st.markdown("<div class='developer-footer'>Crafted with ❤️ by Shaikh Raja</div>", unsafe_allow_html=True)
+
 
