@@ -69,4 +69,4 @@ if prompt := st.chat_input("Zenith se baat kijiye..."):
             
         except Exception as e:
             st.error(f"Error: {e}")
-
+  
